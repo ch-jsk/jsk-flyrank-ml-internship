@@ -1,1 +1,1 @@
-PASTE-YOUR-DEPLOYED-PAPER-URL-HERE
+https://ch-jsk.github.io/jsk-flyrank-ml-internship/
