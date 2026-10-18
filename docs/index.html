@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="A research study evaluating how machine learning can prioritize SEO pages for human review when click-through rate underperforms.">
+<title>Which Pages Should Be Reviewed First? — FlyRank Research</title>
+<style>
+:root {
+  --ink:#202620; --muted:#606a63; --paper:#fbfaf6;
+  --line:#dedfd6; --accent:#315c49; --soft:#edf2eb;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0; background:var(--paper); color:var(--ink);
+  font:17px/1.75 Georgia,"Times New Roman",serif;
+}
+header, main, footer { width:min(900px, calc(100% - 40px)); margin:auto; }
+header { padding:64px 0 34px; border-bottom:1px solid var(--line); }
+.kicker, nav, .meta, .eyebrow, .small, footer {
+  font-family:Arial,Helvetica,sans-serif;
+}
+.kicker, .eyebrow {
+  color:var(--accent); text-transform:uppercase;
+  letter-spacing:.12em; font-size:.76rem; font-weight:700;
+}
+h1 { font-size:clamp(2.3rem,6vw,4.5rem); line-height:1.08; letter-spacing:-.04em; margin:18px 0; }
+h2 { font-size:2rem; line-height:1.2; letter-spacing:-.025em; margin:0 0 18px; }
+h3 { font-size:1.2rem; line-height:1.35; margin:28px 0 8px; }
+.deck { font-size:1.25rem; color:var(--muted); max-width:720px; }
+.meta { font-size:.85rem; color:var(--muted); margin-top:26px; }
+nav { padding:18px 0; border-bottom:1px solid var(--line); font-size:.85rem; display:flex; flex-wrap:wrap; gap:8px 18px; }
+a { color:var(--accent); text-underline-offset:3px; }
+main section { padding:42px 0; border-bottom:1px solid var(--line); scroll-margin-top:20px; }
+.lede { font-size:1.15rem; }
+.callout { background:var(--soft); padding:20px 24px; border-left:4px solid var(--accent); margin:22px 0; }
+.small { font-size:.86rem; color:var(--muted); line-height:1.6; }
+table { width:100%; border-collapse:collapse; font-family:Arial,Helvetica,sans-serif; font-size:.9rem; margin:20px 0; }
+th,td { text-align:left; padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+.metric-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:22px 0; }
+.metric { border:1px solid var(--line); padding:16px; min-width:0; }
+.metric strong { display:block; font:700 clamp(1.3rem,3vw,2rem)/1.3 Arial,sans-serif; color:var(--accent); }
+.metric span { display:block; font: .82rem/1.5 Arial,sans-serif; color:var(--muted); }
+.chart { margin:22px 0; padding:18px; border:1px solid var(--line); }
+.bar-row { display:grid; grid-template-columns:150px 1fr 58px; gap:10px; align-items:center; margin:12px 0; font: .85rem Arial,sans-serif; }
+.track { height:14px; background:#e6e8e0; overflow:hidden; border-radius:2px; }
+.fill { height:100%; background:var(--accent); }
+.fill.baseline { background:#9ba69b; }
+.caption { font:.8rem/1.5 Arial,sans-serif; color:var(--muted); margin-top:14px; }
+li { padding:3px 0; }
+footer { padding:30px 0 60px; font-size:.85rem; color:var(--muted); }
+@media(max-width:600px) {
+  header { padding-top:40px; }
+  .metric-grid { grid-template-columns:1fr; }
+  .bar-row { grid-template-columns:105px 1fr 50px; gap:7px; font-size:.78rem; }
+  table { font-size:.78rem; }
+  th,td { padding:9px 6px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Applied Machine Learning · Research Report</div>
+  <h1>Which pages should be reviewed first when CTR underperforms?</h1>
+  <p class="deck">Evaluating a client-held-out machine-learning ranking approach for prioritizing SEO pages for human review.</p>
+  <div class="meta">FlyRank ML Internship Capstone · Evaluation of development and temporal test results</div>
+</header>
+
+<nav aria-label="Paper contents">
+  <a href="#abstract">Abstract</a><a href="#introduction">Introduction</a>
+  <a href="#data">Data</a><a href="#method">Method</a>
+  <a href="#results">Results</a><a href="#limitations">Limitations</a>
+  <a href="#recommendations">Recommendations</a><a href="#reproducibility">Reproducibility</a>
+  <a href="#acknowledgments">Acknowledgments</a>
+</nav>
+
+<main>
+<section id="abstract">
+  <div class="eyebrow">01 · Abstract</div>
+  <h2>Abstract</h2>
+  <p>This study investigates whether a machine-learning ranking model can help prioritize SEO pages for human review when click-through rate (CTR) underperforms a position-tier reference. The task uses March features to rank pages against an April-derived reference label, with a separate June outcome evaluation intended to test temporal performance. A Random Forest model is compared with a simple baseline ranking using the same evaluation split and precision-at-10, lift, recall, ranking metrics, and CTR shortfall. On the June temporal evaluation, the model achieved precision-at-10 of 82.55%, compared with 80.65% for the baseline, a gain of 1.90 percentage points. These results support further testing of ranking-assisted review, but do not establish causation, production readiness, or generalization to unseen clients beyond the evaluated data.</p>
+</section>
+
+<section id="introduction">
+  <div class="eyebrow">02 · Introduction</div>
+  <h2>Introduction and problem statement</h2>
+  <p>SEO teams may have many pages to inspect but limited time for manual diagnosis. A useful prioritization system should help reviewers decide which pages to examine first, rather than claim to determine the cause of a page's performance.</p>
+  <p>This project evaluates a ranking task: identify pages whose observed CTR is below a frozen reference median for their position tier. The model's intended use is to order candidates for review. It does not predict Google's algorithm, prove that a page needs a particular change, or establish that changing content will improve performance.</p>
+  <div class="callout"><strong>Research question.</strong> Does a Random Forest ranking approach improve the quality of the first ten pages selected for review compared with a simple baseline, including on a later temporal evaluation?</div>
+</section>
+
+<section id="data">
+  <div class="eyebrow">03 · Data</div>
+  <h2>Data and target definition</h2>
+  <p>The supplied project materials describe data spanning January 27, 2025, through June 30, 2026. The reported March feature partition contains approximately 9.84 million rows; the April and May partitions contain approximately 11.7 million rows each. The evaluated modelling datasets are smaller page-level feature/label tables, not the raw partition counts.</p>
+  <h3>Target and evaluation windows</h3>
+  <ul>
+    <li><strong>Development evaluation:</strong> March features and an April outcome label, using a client-held-out split.</li>
+    <li><strong>Temporal evaluation:</strong> March features and June outcomes, evaluated on eight held-out clients.</li>
+    <li><strong>Positive label:</strong> observed CTR below the frozen April reference median for the relevant feature-month position tier.</li>
+    <li><strong>Position tiers:</strong> 11–20, 21–50, 4–10, and top 3. Pages at positions 51 and beyond were excluded because the reference median was zero.</li>
+  </ul>
+  <p>The nine reported model inputs are log impressions, CTR percentage, weighted position, Search Console days available, search volume, word count, March position tier, content type, and main intent.</p>
+  <p class="small">Data counts, label rules, and feature descriptions are based on the recorded project results and supplied project documentation. Raw partition sizes should not be interpreted as the number of independent training examples.</p>
+</section>
+
+<section id="method">
+  <div class="eyebrow">04 · Methodology</div>
+  <h2>Model and comparison design</h2>
+  <p>The reported model is a Random Forest classifier with 200 trees, minimum leaf size 10, balanced class weights, and random seed 42. Numeric features use median imputation; categorical features use most-frequent imputation followed by one-hot encoding.</p>
+  <h3>Baseline and metrics</h3>
+  <p>The model is compared with a simple baseline ranking on the same respective evaluation set. Precision-at-10 (P@10) measures the fraction of the first ten ranked pages that have the positive label. Lift compares that precision with the positive-label prevalence; recall-at-10 measures the fraction of all positive examples captured in the first ten. The report also records ROC AUC, average precision, and mean positive CTR shortfall among the top ten.</p>
+  <h3>Split strategy</h3>
+  <p>The development evaluation reports 29 training clients and 8 test clients. The June temporal evaluation reports 21,548 page-level examples across eight held-out clients. A client-held-out split reduces direct overlap of clients between training and testing, while the later outcome window provides a temporal check.</p>
+  <div class="callout"><strong>Interpretation rule.</strong> All reported model associations and feature importances are descriptive. They do not show that a feature causes CTR underperformance or that acting on a ranking will improve SEO outcomes.</div>
+</section>
+
+<section id="results">
+  <div class="eyebrow">05 · Results</div>
+  <h2>Results: baseline versus model</h2>
+  <h3>Development evaluation</h3>
+  <p>The recorded development set contains 61,874 training pairs and 11,338 test pairs. The positive-label rate in the development evaluation is 51.52%.</p>
+  <table>
+    <thead><tr><th>Metric</th><th>Baseline</th><th>Model</th></tr></thead>
+    <tbody>
+      <tr><td>Precision at 10</td><td>80.69%</td><td>85.19%</td></tr>
+      <tr><td>Lift at 10</td><td>1.566</td><td>1.654</td></tr>
+      <tr><td>Recall at 10</td><td>15.67%</td><td>16.54%</td></tr>
+      <tr><td>Mean positive CTR shortfall in top 10</td><td>0.1195 percentage points</td><td>0.0887 percentage points</td></tr>
+    </tbody>
+  </table>
+
+  <h3>June temporal evaluation</h3>
+  <p>The June evaluation contains 21,548 examples, with a positive-label rate of 55.35%.</p>
+  <div class="metric-grid">
+    <div class="metric"><strong>82.55%</strong><span>Model precision at 10</span></div>
+    <div class="metric"><strong>+1.90 pp</strong><span>Model P@10 gain over baseline</span></div>
+    <div class="metric"><strong>0.7908</strong><span>Model ROC AUC</span></div>
+  </div>
+  <table>
+    <thead><tr><th>Metric</th><th>Baseline</th><th>Model</th></tr></thead>
+    <tbody>
+      <tr><td>Precision at 10</td><td>80.65%</td><td>82.55%</td></tr>
+      <tr><td>Lift at 10</td><td>1.457</td><td>1.491</td></tr>
+      <tr><td>Recall at 10</td><td>14.57%</td><td>14.92%</td></tr>
+      <tr><td>ROC AUC</td><td>Not reported</td><td>0.7908</td></tr>
+      <tr><td>Average precision</td><td>Not reported</td><td>0.7784</td></tr>
+      <tr><td>Mean positive CTR shortfall in top 10</td><td>0.1236 percentage points</td><td>0.0582 percentage points</td></tr>
+    </tbody>
+  </table>
+
+  <div class="chart" role="img" aria-label="Bar chart comparing June precision at ten: baseline 80.65 percent, model 82.55 percent.">
+    <strong>June precision at 10</strong>
+    <div class="bar-row"><span>Baseline</span><div class="track"><div class="fill baseline" style="width:80.65%"></div></div><span>80.65%</span></div>
+    <div class="bar-row"><span>Random Forest</span><div class="track"><div class="fill" style="width:82.55%"></div></div><span>82.55%</span></div>
+    <p class="caption">Figure 1. Reported precision among the ten highest-ranked pages. Bars use a 0–100% scale.</p>
+  </div>
+
+  <p>The June result shows a modest improvement in top-ten precision: 1.90 percentage points over the baseline. The reported mean positive CTR shortfall among the top ten is also lower for the model. These findings are encouraging for triage, but the number of items in a top-ten metric is small and the result alone does not establish operational value.</p>
+
+  
+<h2>Performance by position tier in June</h2>
+<p>
+The following results evaluate the frozen model on May features against June
+outcomes. Precision at the top 10% is calculated separately within each May
+position tier; it is not the overall June precision.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>May position tier</th>
+      <th>Evaluated page pairs</th>
+      <th>June positive rate</th>
+      <th>Baseline precision at top 10%</th>
+      <th>Model precision at top 10%</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>11–20</td><td>7,022</td><td>51.45%</td><td>72.12%</td><td>75.68%</td></tr>
+    <tr><td>21–50</td><td>7,231</td><td>71.15%</td><td>76.38%</td><td>86.46%</td></tr>
+    <tr><td>4–10</td><td>7,040</td><td>42.43%</td><td>81.11%</td><td>76.99%</td></tr>
+    <tr><td>Top 3</td><td>255</td><td>71.37%</td><td>73.08%</td><td>76.92%</td></tr>
+  </tbody>
+</table>
+
+<p>
+The aggregate result hides tier-level differences. The model improves
+precision in positions 11–20 (75.68% versus 72.12%), positions 21–50
+(86.46% versus 76.38%), and the top 3 (76.92% versus 73.08%). The May CTR
+baseline performs better in positions 4–10 (81.11% versus 76.99%). The
+top-3 tier contains only 255 evaluated page pairs, so its result should be
+interpreted cautiously.
+</p>
+<h3>Feature importance</h3>
+  <p>The recorded Random Forest feature-importance results assign the largest importance to March CTR (0.5746), followed by log impressions (0.1567), weighted position (0.0957), word count (0.0742), search volume (0.0331), and Search Console availability (0.0238). These are model-specific importance scores, not causal effects. In particular, a high importance for CTR may partly reflect the relationship between the input and the constructed outcome label.</p>
+</section>
+
+<section id="limitations">
+  <div class="eyebrow">06 · Limitations</div>
+  <h2>Limitations and honest framing</h2>
+  <ul>
+    <li><strong>Ranking is not intervention evidence.</strong> The study evaluates identification and ordering of labelled examples; it does not test whether changes to those pages improve outcomes.</li>
+    <li><strong>Restricted label definition.</strong> The outcome depends on a frozen position-tier median. Excluding positions 51 and beyond limits what can be concluded about those pages.</li>
+    <li><strong>Top-ten sensitivity.</strong> Precision-at-10 is based on a very small shortlist. Small ranking changes can move the metric materially.</li>
+    <li><strong>Tier heterogeneity.</strong> The model does not outperform the baseline in every June position tier.</li>
+    <li><strong>Generalization is uncertain.</strong> Eight held-out clients and one reported temporal evaluation do not establish performance across all clients, industries, or future periods.</li>
+    <li><strong>Reproducibility needs verification.</strong> The repository contains a notebook and development record, but this report does not independently verify that a clean runtime can rebuild the sealed evaluation frame and reproduce every reported metric from committed code and inputs.</li>
+    <li><strong>Importance is not causality.</strong> Feature-importance values should not be interpreted as evidence that modifying a feature will change CTR.</li>
+  </ul>
+</section>
+
+<section id="recommendations">
+  <div class="eyebrow">07 · Recommendations</div>
+  <h2>Ranked recommendations</h2>
+  <ol>
+    <li><strong>Use the ranking as a reviewer-assistance shortlist, not an automated decision.</strong> Require a human to inspect the underlying page and context before recommending changes.</li>
+    <li><strong>Run further time-based evaluations.</strong> Repeat the evaluation on additional later periods and held-out clients before relying on the observed improvement.</li>
+    <li><strong>Compare approaches separately by position tier.</strong> The June results differ across tiers. A hybrid strategy that keeps the baseline for top-3 and 4–10 pages while testing the model for positions 11–50 is a hypothesis for a future experiment, not a validated recommendation.</li>
+    <li><strong>Make the pipeline reproducible.</strong> Commit the exact evaluation-frame build procedure, metric computation, environment details, and aggregate outputs, then verify the results from a clean runtime.</li>
+    <li><strong>Measure downstream usefulness.</strong> In a future controlled evaluation, measure reviewer agreement, time saved, actionability, and subsequent outcomes without implying causation from ranking metrics alone.</li>
+  </ol>
+</section>
+
+<section id="reproducibility">
+  <div class="eyebrow">08 · Reproducibility</div>
+  <h2>Reproducibility and project materials</h2>
+  <p>Project repository and notebook links are provided below. The notebook and development record are the starting points for inspecting the reported work.</p>
+  <ul>
+    <li><a href="https://github.com/ch-jsk/jsk-flyrank-ml-internship">GitHub repository</a></li>
+    <li><a href="https://github.com/ch-jsk/jsk-flyrank-ml-internship/blob/main/work/notebooks/capstone.ipynb">Capstone notebook</a></li>
+    <li><a href="https://github.com/ch-jsk/jsk-flyrank-ml-internship/blob/main/work/notebooks/development_record.json">Development record</a></li>
+  </ul>
+  <p class="small">These links identify project materials; they are not a claim that the entire experiment has already been reproduced from a clean environment. A complete reproducibility check should rebuild the evaluation frame, rerun the baseline and model on the same splits, recompute all metrics, and compare them with the committed aggregate results. Confirm that any required scripts and artifacts are committed before treating the workflow as reproducible.</p>
+</section>
+
+<section id="acknowledgments">
+  <div class="eyebrow">09 · Acknowledgments</div>
+  <h2>Acknowledgments and data credit</h2>
+  <p>Built on the <a href="https://flyrank.ai" target="_blank" rel="noopener noreferrer">FlyRank ML Internship dataset</a>.</p>
+  <p>This report describes an applied internship experiment. It avoids publishing client identities, private queries, or client-specific URLs. The findings are limited to the data, target definition, split strategy, and metrics described above.</p>
+</section>
+</main>
+
+<footer>
+  <p>FlyRank ML Internship Capstone · Research report</p>
+  <p>Interpret the results as an evaluation of a page-review ranking workflow, not as a guarantee of SEO performance.</p>
+</footer>
+</body>
+</html>
