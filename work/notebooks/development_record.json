@@ -1,0 +1,160 @@
+{
+  "lane": "CTR / Engagement Opportunity Scoring",
+  "development_feature_month": "2026-03",
+  "development_outcome_month": "2026-04",
+  "split_unit": "client_hash_id",
+  "split_seed": 42,
+  "train_clients": 29,
+  "test_clients": 8,
+  "train_page_pairs": 61874,
+  "test_page_pairs": 11338,
+  "position_tiers_in_primary_model": [
+    "top_3",
+    "positions_4_10",
+    "positions_11_20",
+    "positions_21_50"
+  ],
+  "excluded_tier": "positions_51_plus",
+  "model": "RandomForestClassifier",
+  "model_parameters": {
+    "n_estimators": 200,
+    "min_samples_leaf": 10,
+    "class_weight": "balanced",
+    "random_state": 42
+  },
+  "feature_columns": [
+    "log_impressions_march",
+    "ctr_march_pct",
+    "weighted_position_march",
+    "gsc_days_available",
+    "search_volume",
+    "word_count",
+    "march_position_tier",
+    "content_type",
+    "main_intent"
+  ],
+  "target": "April CTR below the training-client April median for the March position tier",
+  "primary_ranking_metric": "Precision@10%",
+  "baseline": "Positive shortfall between March CTR and the training-client March median for the March position tier",
+  "test_metrics": {
+    "base_rate_pct": 51.52,
+    "baseline_precision_at_10_pct": 80.69,
+    "model_precision_at_10_pct": 85.19,
+    "baseline_lift": 1.566,
+    "model_lift": 1.654,
+    "baseline_recall_at_10_pct": 15.67,
+    "model_recall_at_10_pct": 16.54,
+    "model_roc_auc": 0.8158,
+    "model_average_precision": 0.7903
+  },
+  "final_test": {
+    "feature_month": "2026-05",
+    "outcome_month": "2026-06",
+    "held_out_clients": 8,
+    "may_eligible_rows": 23402,
+    "evaluated_pairs": 21548,
+    "pairs_without_measurable_june_ctr": 1854,
+    "positive_label_rate_pct": 55.35,
+    "baseline_precision_at_10_pct": 80.65,
+    "model_precision_at_10_pct": 82.55,
+    "baseline_lift": 1.457,
+    "model_lift": 1.491,
+    "baseline_recall_at_10_pct": 14.57,
+    "model_recall_at_10_pct": 14.92,
+    "baseline_mean_gap_top_10_pp": 0.1236,
+    "model_mean_gap_top_10_pp": 0.0582,
+    "model_roc_auc": 0.7908,
+    "model_average_precision": 0.7784,
+    "tier_results": [
+      {
+        "may_position_tier": "positions_11_20",
+        "ranking": "May CTR baseline",
+        "page_pairs": 7022,
+        "top_10pct_count": 703,
+        "base_rate_pct": 51.45,
+        "precision_at_10_pct": 72.12,
+        "lift_vs_tier_base_rate": 1.402,
+        "recall_at_10_pct": 14.03
+      },
+      {
+        "may_position_tier": "positions_11_20",
+        "ranking": "Frozen Random Forest",
+        "page_pairs": 7022,
+        "top_10pct_count": 703,
+        "base_rate_pct": 51.45,
+        "precision_at_10_pct": 75.68,
+        "lift_vs_tier_base_rate": 1.471,
+        "recall_at_10_pct": 14.72
+      },
+      {
+        "may_position_tier": "positions_21_50",
+        "ranking": "May CTR baseline",
+        "page_pairs": 7231,
+        "top_10pct_count": 724,
+        "base_rate_pct": 71.15,
+        "precision_at_10_pct": 76.38,
+        "lift_vs_tier_base_rate": 1.073,
+        "recall_at_10_pct": 10.75
+      },
+      {
+        "may_position_tier": "positions_21_50",
+        "ranking": "Frozen Random Forest",
+        "page_pairs": 7231,
+        "top_10pct_count": 724,
+        "base_rate_pct": 71.15,
+        "precision_at_10_pct": 86.46,
+        "lift_vs_tier_base_rate": 1.215,
+        "recall_at_10_pct": 12.17
+      },
+      {
+        "may_position_tier": "positions_4_10",
+        "ranking": "May CTR baseline",
+        "page_pairs": 7040,
+        "top_10pct_count": 704,
+        "base_rate_pct": 42.43,
+        "precision_at_10_pct": 81.11,
+        "lift_vs_tier_base_rate": 1.912,
+        "recall_at_10_pct": 19.12
+      },
+      {
+        "may_position_tier": "positions_4_10",
+        "ranking": "Frozen Random Forest",
+        "page_pairs": 7040,
+        "top_10pct_count": 704,
+        "base_rate_pct": 42.43,
+        "precision_at_10_pct": 76.99,
+        "lift_vs_tier_base_rate": 1.815,
+        "recall_at_10_pct": 18.15
+      },
+      {
+        "may_position_tier": "top_3",
+        "ranking": "May CTR baseline",
+        "page_pairs": 255,
+        "top_10pct_count": 26,
+        "base_rate_pct": 71.37,
+        "precision_at_10_pct": 73.08,
+        "lift_vs_tier_base_rate": 1.024,
+        "recall_at_10_pct": 10.44
+      },
+      {
+        "may_position_tier": "top_3",
+        "ranking": "Frozen Random Forest",
+        "page_pairs": 255,
+        "top_10pct_count": 26,
+        "base_rate_pct": 71.37,
+        "precision_at_10_pct": 76.92,
+        "lift_vs_tier_base_rate": 1.078,
+        "recall_at_10_pct": 10.99
+      }
+    ]
+  },
+  "limitations": [
+    "Observational decision-support analysis; no causal claims.",
+    "June evaluation includes only eligible May rows with measurable June CTR.",
+    "June outcomes were not used to train or tune the model.",
+    "The model has a modest overall Precision@10% advantage over the baseline.",
+    "Tier-level results vary; the baseline performs better in positions 4-10 and top_3.",
+    "The top_3 tier has a small evaluated sample.",
+    "Positions 51+ were excluded from the primary comparison."
+  ]
+}
